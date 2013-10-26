@@ -3,14 +3,17 @@
 #
 # file: asciidoc_http_server.py
 #
-# Copyright 2011 - 2013 scitics GmbH
+# Copyright 2013 Frans Fuerst
 #
-# Information  contained  herein  is  subject  to change  without  notice.
-# scitics GmbH  retains ownership and  all other rights  in this software.
-# Any reproduction of the software or components thereof without the prior
-# written permission of scitics GmbH is prohibited.
+# This code is likely to be licenced under Apache 2.0 or BSD licence plus
+# a CLA will be needed. This CLA will make you keep all your rights on 
+# contributed code and enable the original project owner (me) to fork this
+# project with all contributions under a different licence while the original
+# code stays open.
 
-"""docstring"""
+"""run a http server which shows asciidoc files within a folder and compiles
+   and returns asciidoc content of a file on click
+"""
 
 import optparse
 import BaseHTTPServer
@@ -22,7 +25,9 @@ import os
 import subprocess
 
 class ServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-    """docstring"""
+    """acts like SimpleHTTPServer with the difference that it only shows
+       asciidoc files and returns them as compiled asciidoc html code
+    """
 
     def __init__(self, eins, zwei, drei):
         BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, eins, zwei, drei)
@@ -31,13 +36,18 @@ class ServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     def do_HEAD(self):
-        """docstring"""
+        """returns the http header"""
+        
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
     
     def do_GET(self):
-        """docstring"""
+        """returns the http content
+           we use subprocessing here rather than just importing content_generator
+           because we want to be able to change content_generator without the
+           need to restart the http server
+        """
         
         _command  = [sys.executable]
         _command += [os.path.join(
@@ -98,7 +108,9 @@ class ServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
 
 def main():
-    """docstring"""
+    """decouples from global space parses command lines arguments and 
+       starts the server
+    """
     
     parser = optparse.OptionParser()
 

@@ -1,14 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# file: content_generator.py
+# file: asciidoc_http_server.py
 #
-# Copyright 2011 - 2013 scitics GmbH
+# Copyright 2013 Frans Fuerst
 #
-# Information  contained  herein  is  subject  to change  without  notice.
-# scitics GmbH  retains ownership and  all other rights  in this software.
-# Any reproduction of the software or components thereof without the prior
-# written permission of scitics GmbH is prohibited.
+# This code is likely to be licenced under Apache 2.0 or BSD licence plus
+# a CLA will be needed. This CLA will make you keep all your rights on 
+# contributed code and enable the original project owner (me) to fork this
+# project with all contributions under a different licence while the original
+# code stays open.
 
 """generates a html content as response to a root folder and a sub url
    depending on the sub url an asciidoc page or a content page will be
@@ -47,14 +48,14 @@ def generate_html(root, path, suffix='.asciidoc.txt'):
     elif path[1:] in files:
         _in_file = os.path.join(root, path[1:])
         _out_file = "~" + path[1:-len(suffix)] + ".html"
-        logging.info("<p>%s</p>" % _in_file )
+        logging.info("<p>%s</p>", _in_file )
         
         _asciidoc_retval = os.system("asciidoc --out-file %s %s" % 
                                      (_out_file, _in_file))
         
         print open(_out_file).read()
         
-        logging.info("<p>transform to %s</p>" % _out_file )
+        logging.info("<p>transform to %s</p>", _out_file )
         
     else:
         print("<html>"

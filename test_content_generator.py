@@ -1,20 +1,25 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# file: test_content_generator.py
+# file: asciidoc_http_server.py
 #
-# Copyright 2011 - 2013 scitics GmbH
+# Copyright 2013 Frans Fuerst
 #
-# Information  contained  herein  is  subject  to change  without  notice.
-# scitics GmbH  retains ownership and  all other rights  in this software.
-# Any reproduction of the software or components thereof without the prior
-# written permission of scitics GmbH is prohibited.
+# This code is likely to be licenced under Apache 2.0 or BSD licence plus
+# a CLA will be needed. This CLA will make you keep all your rights on 
+# contributed code and enable the original project owner (me) to fork this
+# project with all contributions under a different licence while the original
+# code stays open.
 
+""" just implements some sort of smoke test for content_generator. 
+    no real testing yet.
+"""
 import sys
 import os
 import subprocess
 
 def main():
+    """currently just run content_generator in a non-intrusive way"""
 
     _command  = [sys.executable]
     _command += [os.path.join(
