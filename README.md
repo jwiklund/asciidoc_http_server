@@ -8,7 +8,8 @@ Its being started like this:
 `asciidoc_http_server --port 8080 --root /path/to/asciidoc/files`
 
 If you now browse localhost:8080/ you will be provided with a list of links
-representing asciidoc files located in _/path/to/asciidoc/files_.
+representing asciidoc files (ending with '.asciidoc.txt') located in 
+_/path/to/asciidoc/files_.
 
 By navigating to one of these links asciidoc will be started on the fly
 returning a html rendered web page.
