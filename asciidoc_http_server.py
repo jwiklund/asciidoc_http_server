@@ -6,7 +6,7 @@
 # Copyright 2013 Frans Fuerst
 #
 # This code is likely to be licenced under Apache 2.0 or BSD licence plus
-# a CLA will be needed. This CLA will make you keep all your rights on 
+# a CLA will be needed. This CLA will make you keep all your rights on
 # contributed code and enable the original project owner (me) to fork this
 # project with all contributions under a different licence while the original
 # code stays open.
@@ -34,45 +34,46 @@ class ServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         # should avoid socket.error "address already in use" but has no effect
         self.server.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    
+
     def do_HEAD(self):
         """returns the http header"""
-        
+
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-    
+
     def do_GET(self):
         """returns the http content
            we use subprocessing here rather than just importing content_generator
            because we want to be able to change content_generator without the
            need to restart the http server
         """
-        
+
         _command  = [sys.executable]
         _command += [os.path.join(
-            os.path.dirname(__file__), 
+            os.path.dirname(__file__),
             "content_generator.py") ]
         _command += ['-r', self.server.root]
         _command += ['-f', self.path]
-        
+        _command += ['-a', self.server.asciidoc_processor]
+
         _process = subprocess.Popen(args=_command, stdout=subprocess.PIPE)
         _stdout, _stderr = _process.communicate()
         _return = _process.returncode
-        
+
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
         self.wfile.write(_stdout)
-       
-        
+
+
         """
     def do_GET(self):
         #logging.error(self.headers)
         #print "HEADERS:", self.headers
         #print "DIR:", dir( self.headers )
-        #print "KEYS:", self.headers.keys() 
+        #print "KEYS:", self.headers.keys()
         #for k in self.headers.keys():
         #    print k, ":", self.headers[k]
         SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
@@ -88,7 +89,7 @@ class ServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         #print "CLIENT:", client
         #print "path:", self.path
         if self.path == "/index.html" or self.path == "/" or self.path == "":
-            log_str = "from %s at %d hostnames %s" % ( client, time.time(), 
+            log_str = "from %s at %d hostnames %s" % ( client, time.time(),
             socket.gethostbyaddr( client ) )
             print log_str
             open( "connections.log", "a" ).write( log_str + "\n" )
@@ -108,10 +109,10 @@ class ServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         """
 
 def main():
-    """decouples from global space parses command lines arguments and 
+    """decouples from global space parses command lines arguments and
        starts the server
     """
-    
+
     parser = optparse.OptionParser()
 
     parser.add_option("-r", "--root", dest = "root", default = ".",
@@ -120,15 +121,20 @@ def main():
     parser.add_option("-p", "--port", dest = "port", default = 8000,
                       help = "port used for http", metavar = "port-nr")
 
+    parser.add_option("-a", "--asciidoc-path", dest = "asciidoc_path",
+                      default = "asciidoc", help = "path to asciidoc",
+                      metavar = "path")
+
     (options, _) = parser.parse_args()
 
     if hasattr(socket, 'setdefaulttimeout'):
         socket.setdefaulttimeout(2)
 
     httpd = SocketServer.TCPServer(("", int(options.port)), ServerHandler)
-    
+
     # bad: refactor
     httpd.root = options.root
+    httpd.asciidoc_processor = options.asciidoc_path
 
     print "serving at port", options.port
     print "serving folder ", os.path.abspath(options.root)
@@ -137,4 +143,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
+
