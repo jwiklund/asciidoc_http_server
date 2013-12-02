@@ -125,7 +125,11 @@ def main():
                       default = "asciidoc", help = "path to asciidoc",
                       metavar = "path")
 
-    (options, _) = parser.parse_args()
+    (options, args) = parser.parse_args()
+    if len(args) > 0:
+        parser.print_help()
+        parser.error("unrecognized extra arguments %s\n"
+                     "maybe you forgot an argument prefix?" % str(args))
 
     if hasattr(socket, 'setdefaulttimeout'):
         socket.setdefaulttimeout(2)

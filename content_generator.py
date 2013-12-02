@@ -21,15 +21,69 @@ import sys
 import os
 import logging
 
+def list_directory(root, path, suffix):
+
+    local_path = os.path.join(root, path)
+
+    files = sorted([filen for filen in os.listdir(local_path)
+             if os.path.isfile(os.path.join(local_path, filen))
+             and filen.endswith(suffix)])
+
+    directories = sorted([filen for filen in os.listdir(local_path)
+             if os.path.isdir(os.path.join(local_path, filen))
+             and filen != ".git"])
+
+    print("<html>"
+          "<head><title>scitics public knowledge base</title></head>"
+          "<body>")
+
+    print("<p>"
+          "you accessed path: '%s'<br>"
+          "</p>" % [path])
+
+
+    print("<p>")
+    for dir_name in directories:
+        print("<a href = %s>%s</a><br>" % (dir_name, dir_name) )
+    print("</p>")
+
+
+    print("<p>")
+    for file_name in files:
+        print("<a href = %s>%s</a><br>" % (file_name, file_name) )
+    print("</p>")
+
+    print("</body></html>")
+
+
 def generate_html(root, path, asciidoc_processor='asciidoc', suffix='.asciidoc.txt'):
     """does the actual work. is getting called by main() or directly by
        a http server or a test
     """
+    try:
+        prepared_path = path.lstrip('/').rstrip('index.html')
 
-    files = [filen for filen in os.listdir(root)
+        full_local_dir = os.path.join(root, prepared_path)
+
+        if os.path.isdir(full_local_dir):
+            list_directory(root, prepared_path, suffix)
+        elif os.path.isfile(full_local_dir):
+            print "'%s' is a file" % full_local_dir
+        else:
+            print "ERROR root='%s' path='%s' full='%s'" %(root, path.rstrip('index.html'),full_local_dir)
+    except Exception, ex:
+        print ex
+
+
+    return
+
+    files = sorted([filen for filen in os.listdir(root)
              if os.path.isfile(os.path.join(root, filen))
-             and filen.endswith(suffix)]
+             and filen.endswith(suffix)])
 
+    directories = sorted([filen for filen in os.listdir(root)
+             if os.path.isdir(os.path.join(root, filen))
+             and filen != ".git"])
 
     if path == "/" or path == "/index.html":
         print("<html>"
@@ -41,8 +95,17 @@ def generate_html(root, path, asciidoc_processor='asciidoc', suffix='.asciidoc.t
               "root is:           '%s'"
               "</p>" % ( path, root))
 
-        for filen in files:
-            print("<p><a href = %s>%s</a></p>" % (filen, filen) )
+        print("<p>")
+        for dir_name in directories:
+            print("<a href = %s>%s</a><br>" % (dir_name, dir_name) )
+        print("</p>")
+
+
+        print("<p>")
+        for file_name in files:
+            print("<a href = %s>%s</a><br>" % (file_name, file_name) )
+        print("</p>")
+
         print("</body></html>")
 
     elif path[1:] in files:
@@ -50,9 +113,9 @@ def generate_html(root, path, asciidoc_processor='asciidoc', suffix='.asciidoc.t
         _out_file = "~" + path[1:-len(suffix)] + ".html"
         logging.info("<p>%s</p>", _in_file )
 
-        _asciidoc_retval = os.system("%s --out-file %s %s" %
+        _asciidoc_retval = os.system("%s -a max-width=1024px --out-file %s %s" % 
                                      (asciidoc_processor, _out_file, _in_file))
-
+        
         print open(_out_file).read()
 
         logging.info("<p>transform to %s</p>", _out_file )
@@ -94,4 +157,16 @@ def main():
     sys.exit(generate_html(options.root, options.filename, options.asciidoc_path))
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s %(message)s',
+        datefmt="%y%m%d-%H%M%S",
+        level=logging.DEBUG)
+
+    logging.addLevelName( logging.CRITICAL, '(CRITICAL)' )
+    logging.addLevelName( logging.ERROR,    '(EE)' )
+    logging.addLevelName( logging.WARNING,  '(WW)' )
+    logging.addLevelName( logging.INFO,     '(II)' )
+    logging.addLevelName( logging.DEBUG,    '(DD)' )
+    logging.addLevelName( logging.NOTSET,   '(NA)' )
+
     main()
