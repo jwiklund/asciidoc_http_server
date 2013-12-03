@@ -6,8 +6,8 @@ chap1
 
 test text
 
-chap2
------
+chapter2
+--------
 
 test text
 

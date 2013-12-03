@@ -20,8 +20,17 @@ import optparse
 import sys
 import os
 import logging
+import subprocess
+
+def remove_suffix(in_string, suffix):
+    if in_string.endswith(suffix):
+        return in_string[:-len(suffix)]
+    return in_string
 
 def list_directory(root, path, suffix):
+
+    logging.debug("list_directory(root='%s', path='%s', suffix='%s')",
+        root, path, suffix)
 
     local_path = os.path.join(root, path)
 
@@ -44,16 +53,42 @@ def list_directory(root, path, suffix):
 
     print("<p>")
     for dir_name in directories:
-        print("<a href = %s>%s</a><br>" % (dir_name, dir_name) )
+        link_path = os.path.join('/', path, dir_name)
+        logging.debug("  add dir '%s'+'%s'='%s'", path, dir_name, os.path.join('/', path, dir_name))
+        print("<a href = %s>%s</a><br>" % (link_path, dir_name) )
     print("</p>")
 
 
     print("<p>")
     for file_name in files:
-        print("<a href = %s>%s</a><br>" % (file_name, file_name) )
+        link_path = os.path.join('/', path, file_name)
+        logging.debug("  add file '%s'+'%s'='%s'", path, file_name, link_path)
+        print("<a href = %s>%s</a><br>" % (link_path, file_name) )
     print("</p>")
 
     print("</body></html>")
+
+def display_file(root, path, asciidoc_processor, suffix):
+
+    logging.debug("display_file(root='%s', path='%s', suffix='%s')",
+        root, path, suffix)
+
+    _in_file = os.path.join(root, path)
+    
+    _out_file = path[:-len(suffix)] + ".html"
+
+    logging.debug("  read from file '%s'", _in_file )
+    logging.debug("  write to file '%s'", _out_file )
+
+    _asciidoc_output = subprocess.Popen(
+        [asciidoc_processor, '-a', 'max-width=1024px', '--out-file', '-', _in_file],
+        stdout=subprocess.PIPE).communicate()[0]
+
+#    _asciidoc_retval = os.system("%s -a max-width=1024px --out-file - %s" % 
+#                                 (asciidoc_processor, _in_file))
+    
+    #print open(_out_file).read()
+    print _asciidoc_output
 
 
 def generate_html(root, path, asciidoc_processor='asciidoc', suffix='.asciidoc.txt'):
@@ -61,78 +96,33 @@ def generate_html(root, path, asciidoc_processor='asciidoc', suffix='.asciidoc.t
        a http server or a test
     """
     try:
-        prepared_path = path.lstrip('/').rstrip('index.html')
+        prepared_path = remove_suffix(path, 'index.html').strip('/')
 
         full_local_dir = os.path.join(root, prepared_path)
 
         if os.path.isdir(full_local_dir):
             list_directory(root, prepared_path, suffix)
         elif os.path.isfile(full_local_dir):
-            print "'%s' is a file" % full_local_dir
+            display_file(root, prepared_path, asciidoc_processor, suffix)
         else:
-            print "ERROR root='%s' path='%s' full='%s'" %(root, path.rstrip('index.html'),full_local_dir)
+            print("<html>"
+                  "<head><title>scitics public knowledge base</title></head>"
+                  "<body>")
+
+            print("<p>"
+                  "UNKNOWN<br>"
+                  "you accessed path: '%s'<br>"
+                  "root is:           '%s'"
+                  "</p>" % ( path, root))
+
+            print("</body></html>")
+
+            logging.error("root='%s' path='%s', prepared_path='%s' full='%s'",
+                root, path, prepared_path, full_local_dir)
+            return -1
+
     except Exception, ex:
         print ex
-
-
-    return
-
-    files = sorted([filen for filen in os.listdir(root)
-             if os.path.isfile(os.path.join(root, filen))
-             and filen.endswith(suffix)])
-
-    directories = sorted([filen for filen in os.listdir(root)
-             if os.path.isdir(os.path.join(root, filen))
-             and filen != ".git"])
-
-    if path == "/" or path == "/index.html":
-        print("<html>"
-              "<head><title>scitics public knowledge base</title></head>"
-              "<body>")
-
-        print("<p>"
-              "you accessed path: '%s'<br>"
-              "root is:           '%s'"
-              "</p>" % ( path, root))
-
-        print("<p>")
-        for dir_name in directories:
-            print("<a href = %s>%s</a><br>" % (dir_name, dir_name) )
-        print("</p>")
-
-
-        print("<p>")
-        for file_name in files:
-            print("<a href = %s>%s</a><br>" % (file_name, file_name) )
-        print("</p>")
-
-        print("</body></html>")
-
-    elif path[1:] in files:
-        _in_file = os.path.join(root, path[1:])
-        _out_file = "~" + path[1:-len(suffix)] + ".html"
-        logging.info("<p>%s</p>", _in_file )
-
-        _asciidoc_retval = os.system("%s -a max-width=1024px --out-file %s %s" % 
-                                     (asciidoc_processor, _out_file, _in_file))
-        
-        print open(_out_file).read()
-
-        logging.info("<p>transform to %s</p>", _out_file )
-
-    else:
-        print("<html>"
-              "<head><title>scitics public knowledge base</title></head>"
-              "<body>")
-
-        print("<p>"
-              "UNKNOWN<br>"
-              "you accessed path: '%s'<br>"
-              "root is:           '%s'"
-              "</p>" % ( path, root))
-
-        print("</body></html>")
-
         return -1
 
     return 0

@@ -60,6 +60,9 @@ class ServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         _process = subprocess.Popen(args=_command, stdout=subprocess.PIPE)
         _stdout, _stderr = _process.communicate()
         _return = _process.returncode
+        
+        if _return == -2:
+            sys.exit(0)
 
         self.send_response(200)
         self.send_header("Content-type", "text/html")
@@ -134,17 +137,37 @@ def main():
     if hasattr(socket, 'setdefaulttimeout'):
         socket.setdefaulttimeout(2)
 
-    httpd = SocketServer.TCPServer(("", int(options.port)), ServerHandler)
+    port = int(options.port)
+    logging.info( "serving at port %d", port)
+    logging.info( "serving folder  '%s'", os.path.abspath(options.root))
+
+    try:
+        httpd = SocketServer.TCPServer(("", port), ServerHandler)
+    except socket.error, ex:
+        logging.error("could not create TCPServer: '%s'", ex)
+        sys.exit( -1 )
+
+    except Exception, ex:
+        logging.error("something happened I did not think about yet: '%s'", ex)
 
     # bad: refactor
     httpd.root = options.root
     httpd.asciidoc_processor = options.asciidoc_path
 
-    print "serving at port", options.port
-    print "serving folder ", os.path.abspath(options.root)
-
     httpd.serve_forever()
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s %(message)s',
+        datefmt="%y%m%d-%H%M%S",
+        level=logging.DEBUG)
+
+    logging.addLevelName( logging.CRITICAL, '(CRITICAL)' )
+    logging.addLevelName( logging.ERROR,    '(EE)' )
+    logging.addLevelName( logging.WARNING,  '(WW)' )
+    logging.addLevelName( logging.INFO,     '(II)' )
+    logging.addLevelName( logging.DEBUG,    '(DD)' )
+    logging.addLevelName( logging.NOTSET,   '(NA)' )
+
     main()
 
