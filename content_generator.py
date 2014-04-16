@@ -141,10 +141,12 @@ def main():
     parser.add_option("-a", "--asciidoc-path", dest = "asciidoc_path",
                       default = "asciidoc", help = "path to asciidoc",
                       metavar = "path")
+    parser.add_option("-s", "--asciidoc-suffix", dest = "asciidoc_suffix",
+                      default = ".asciidoc.txt", help = "asciidoc suffix")
 
     (options, _) = parser.parse_args()
 
-    sys.exit(generate_html(options.root, options.filename, options.asciidoc_path))
+    sys.exit(generate_html(options.root, options.filename, options.asciidoc_path, options.asciidoc_suffix))
 
 if __name__ == "__main__":
     logging.basicConfig(

@@ -56,6 +56,7 @@ class ServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         _command += ['-r', self.server.root]
         _command += ['-f', self.path]
         _command += ['-a', self.server.asciidoc_processor]
+        _command += ['-s', self.server.asciidoc_suffix]
 
         _process = subprocess.Popen(args=_command, stdout=subprocess.PIPE)
         _stdout, _stderr = _process.communicate()
@@ -128,6 +129,9 @@ def main():
                       default = "asciidoc", help = "path to asciidoc",
                       metavar = "path")
 
+    parser.add_option("-s", "--asciidoc-suffix", dest  = "asciidoc_suffix",
+                      default = ".asciidoc.txt", help = "asciidoc file suffix")
+
     (options, args) = parser.parse_args()
     if len(args) > 0:
         parser.print_help()
@@ -153,6 +157,7 @@ def main():
     # bad: refactor
     httpd.root = options.root
     httpd.asciidoc_processor = options.asciidoc_path
+    httpd.asciidoc_suffix = options.asciidoc_suffix
 
     httpd.serve_forever()
 
